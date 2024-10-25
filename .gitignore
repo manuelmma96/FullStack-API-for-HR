@@ -1,0 +1,43 @@
+# Node Modules
+node_modules/
+
+# Ignore compiled JavaScript and map files
+*.js
+*.js.map
+
+# Ignore the dist folder (if it's being used correctly)
+dist/
+
+# Environment Variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary Files and Cache
+*.tmp
+*.temp
+*.swp
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# TypeScript Cache and Config
+*.tsbuildinfo
+
+# macOS Metadata
+._*
+.Spotlight-V100
+.Trashes
+
+# Postman Collections (Optional: If you don't want to track them)
+*.postman_collection.json
+*.postman_environment.json
+
+# System Config Files
+package-lock.json # Optional: If you prefer not to lock versions
