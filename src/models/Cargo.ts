@@ -1,6 +1,7 @@
 export interface Cargo {
-    id: number;
-    cargo: string;
-    activo: boolean;
-    isByPass: boolean;
-  }
+  id: number;
+  titulo: string;
+  active: boolean;
+  isByPass: boolean;
+  salario_id: number;
+}

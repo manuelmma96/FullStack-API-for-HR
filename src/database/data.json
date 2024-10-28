@@ -1,68 +1,190 @@
 {
-  "employees": [
+  "accounts": [
     {
       "id": 1,
-      "cedula": "123-4567890-1",
-      "fullname": "Juan Pérez",
-      "pricePerHour": 300,
-      "activo": true
-    }
-  ],
-  "workedHours": [
-    {
-      "employeeId": 1,
-      "hours": 185.84
-    },
-    {
-      "employeeId": 1,
-      "hours": 525
-    }
-  ],
-  "ponches": [
-    {
-      "poncheId": 1,
-      "fechaEntrada": "2024-10-01T08:00:00Z",
-      "fechaSalida": "2024-10-01T17:00:00Z",
-      "empleadoId": 1
+      "username": "admin",
+      "password": "$2a$10$xeuSqTcqknkzzjXX5udkYul/e4Cfdqlua1ukUdatJCTosnn5ALzO.",
+      "firstName": "Moises",
+      "lastName": "Menendez",
+      "role": "Admin123"
     }
   ],
   "cargos": [
     {
       "id": 1,
-      "cargo": "Director",
-      "activo": true,
-      "isByPass": true
+      "titulo": "Director",
+      "salario_id": 1,
+      "isByPass": true,
+      "active": false
+    },
+    {
+      "id": 2,
+      "titulo": "Gerente",
+      "salario_id": 2,
+      "isByPass": true,
+      "active": false
+    },
+    {
+      "id": 3,
+      "titulo": "Encargado",
+      "salario_id": 3,
+      "isByPass": true,
+      "active": true
+    },
+    {
+      "id": 4,
+      "titulo": "Coordinador",
+      "salario_id": 4,
+      "isByPass": true,
+      "active": true
+    },
+    {
+      "id": 5,
+      "titulo": "Analista",
+      "salario_id": 5,
+      "isByPass": true,
+      "active": true
     }
   ],
-  "accounts": [
+  "employees": [
     {
-      "user": "admin",
-      "pass": "admin123",
-      "firstName": "Admin",
-      "lastName": "User",
-      "permisos": [
-        1
-      ]
+      "id": 1,
+      "cedula": "402-1048960-2",
+      "fullname": "Moises Menendez",
+      "pricePerHour": 300,
+      "activo": true,
+      "cargo_id": 1
+    },
+    {
+      "id": 2,
+      "cedula": "402-2046029-2",
+      "fullname": "Carla Fernandez",
+      "pricePerHour": 250,
+      "activo": true,
+      "cargo_id": 2
+    },
+    {
+      "id": 3,
+      "cedula": "402-2048201-2",
+      "fullname": "Sergio Lima",
+      "pricePerHour": 200,
+      "activo": true,
+      "cargo_id": 3
+    },
+    {
+      "id": 4,
+      "cedula": "402-2041256-2",
+      "fullname": "Julio Lopez",
+      "pricePerHour": 150,
+      "activo": true,
+      "cargo_id": 4
+    },
+    {
+      "id": 5,
+      "cedula": "402-2043586-2",
+      "fullname": "Carlos Gonzalez",
+      "pricePerHour": 100,
+      "activo": true,
+      "cargo_id": 5
     }
   ],
   "permisos": [
     {
-      "permiso": "Admin",
-      "activo": true,
-      "cargoId": 1
+      "id": 1,
+      "permiso": "Acceso Completo",
+      "active": true
+    },
+    {
+      "id": 2,
+      "permiso": "Generar nomina, Update, Asignar, Visualizar: (Empleado, Cargo, Permisos, Nomina y Desvincular Employee)",
+      "active": true
+    },
+    {
+      "id": 3,
+      "permiso": "Asignar Cargo, Update Employee y Visualizar",
+      "active": true
+    },
+    {
+      "id": 4,
+      "permiso": "Update HorasExtras y Visualizar",
+      "active": true
+    },
+    {
+      "id": 5,
+      "permiso": "Visualizar",
+      "active": true
+    }
+  ],
+  "salarios": [
+    {
+      "id": 1,
+      "monto": 100000,
+      "cargo_id": 1
+    },
+    {
+      "id": 2,
+      "monto": 80000,
+      "cargo_id": 2
+    },
+    {
+      "id": 3,
+      "monto": 60000,
+      "cargo_id": 3
+    },
+    {
+      "id": 4,
+      "monto": 40000,
+      "cargo_id": 4
+    },
+    {
+      "id": 5,
+      "monto": 20000,
+      "cargo_id": 5
+    }
+  ],
+  "ponches": [
+    {
+      "id": 1,
+      "employee_id": 1,
+      "entrada": "2024-10-23T08:00:00",
+      "salida": "2024-10-23T16:00:00",
+      "intervalo": 8,
+      "active": true
+    }
+  ],
+  "workedHours": [
+    {
+      "employee_id": 1,
+      "hours": 150
+    },
+    {
+      "employee_id": 2,
+      "hours": 230
+    },
+    {
+      "employee_id": 3,
+      "hours": 230
+    },
+    {
+      "employee_id": 4,
+      "hours": 240
+    },
+    {
+      "employee_id": 5,
+      "hours": 200
     }
   ],
   "nominas": [
     {
-      "empleadoId": 1,
-      "salario": 11500,
-      "horasTrabajadas": 40,
-      "horasExtras": 5,
-      "totalDineroHorasExtras": 875,
-      "fechaGeneracionNomina": "2024-10-15T00:00:00Z",
-      "corteNomina": "1 Octubre 2024 - 15 Octubre 2024",
-      "generadoPor": 1,
-      "totalAPagar": 12375
+      "id": 1730081338868,
+      "employee_id": 1,
+      "salario": 55752,
+      "workedHours": 150,
+      "extraHours": 0,
+      "totalMontoExtraHours": 0,
+      "fechaGeneracion": "2024-10-31",
+      "corteNomina": "1 de octubre del 2024 - 31 de octubre del 2024",
+      "pagaTotal": 55752
     }
   ]
 }

@@ -3,7 +3,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import employeeRoutes from './routes/employee';
 import cargoRoutes from './routes/cargo';
-import poncheRoutes from './routes/ponche';
+import salarioRoutes from './routes/salario';
+//import poncheRoutes from './routes/ponche';
 import nominaRoutes from './routes/nomina';
 import accountRoutes from './routes/account';
 
@@ -19,9 +20,20 @@ app.use(cors({ origin: true, credentials: true }));
 // Rutas
 app.use('/employee', employeeRoutes);
 app.use('/cargo', cargoRoutes);
-app.use('/ponche', poncheRoutes);
+app.use('/salarios', salarioRoutes); 
+//app.use('/ponche', poncheRoutes);
 app.use('/nomina', nominaRoutes);
 app.use('/account', accountRoutes);
+
+
+//Ruta Raíz
+app.get('/', (req: express.Request, res: express.Response) => {
+  res.status(200).json({ message: 'API funcionando correctamente' });
+});
+
+app.use((req: express.Request, res: express.Response) => {
+  res.status(404).json({ message: 'Ruta no encontrada' });
+});
 
 
 app.listen(PORT, () => {

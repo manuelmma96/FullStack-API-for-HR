@@ -1,11 +1,11 @@
 export interface Nomina {
-    empleadoId: number;
+    id: number;
+    employee_id: number;
     salario: number;
-    horasTrabajadas: number;
-    horasExtras: number;
-    totalDineroHorasExtras: number;
-    fechaGeneracionNomina: Date;
+    workedHours: number;
+    extraHours: number;
+    totalMontoExtraHours: number;
+    fechaGeneracion: string;
     corteNomina: string;
-    generadoPor: number; 
-    totalAPagar: number;
+    pagaTotal: number;
   }

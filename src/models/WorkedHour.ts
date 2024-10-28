@@ -1,4 +1,5 @@
 export interface WorkedHour {
-    employeeId: number;
     hours: number;
+    employee_id: number;
+    
   }

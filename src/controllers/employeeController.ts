@@ -1,30 +1,42 @@
 import { Request, Response } from 'express';
+import { DataService } from '../services/dataService';
 import { Employee } from '../models/Employee';
-import { HorasTrabajadas } from '../models/Employee';
-import { readData, writeData } from '../utils/jsonHandler';
+import { WorkedHour } from '../models/WorkedHour';
+//import { HORAS_DIARIAS } from '../constants';
+//import { DIAS_LABORABLES_MENSUALES } from '../constants';
+import { HORAS_MENSUALES_STANDARD } from '../utils/constants';
+
+
+
+const dataService = new DataService();  
 
 /**
  * 1- Obtener todos los empleados.
  */
 export const getEmployees = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = await readData();
-    res.status(200).json(data.employees);
+    const employees = await dataService.getEmployees();
+
+    if (!employees || employees.length === 0) {
+    res.status(404).json({ message: 'No se encontraron empleados.' });
+    return;
+    }
+
+    res.status(200).json(employees);
   } catch (error) {
-    const errorMessage = (error as Error).message;
-    res.status(500).json({ message: 'Error al obtener los empleados', error: errorMessage });
+    res.status(500).json({ message: 'Error al obtener empleados', error: (error as Error).message });
   }
 };
 
 /**
  * 2- Obtener un empleado por su ID.
  */
-export const getEmployeeById = async (req: Request, res: Response): Promise<void> => {
+export const getEmployeeById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    const data = await readData();
-    const employee = data.employees.find((e: Employee) => e.id === parseInt(id));
+    const employees = await dataService.getEmployees();
+    const employee = employees.find((e: Employee) => e.id === parseInt(id));
 
     if (!employee) {
       res.status(404).json({ message: 'Empleado no encontrado' });
@@ -41,15 +53,14 @@ export const getEmployeeById = async (req: Request, res: Response): Promise<void
 /**
  * 3- Obtener por ID registro horas trabajadas por empleado.
  */
-export const getEmployeeHours = async (req: Request, res: Response): Promise<void> => {
+export const getEmployeeHours = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    const data = await readData();
-    const hours = data.workedHours.filter((h: HorasTrabajadas) => h.employeeId === parseInt(id));
+    const hours = await dataService.getWorkedHours(parseInt(id));
 
-    if (hours.length === 0) {
-      res.status(404).json({ message: 'No se encontraron horas trabajadas por este empleado' });
+    if (!hours || hours.length === 0) {
+      res.status(404).json({ message: 'No se encontraron horas para este empleado.' });
       return;
     }
 
@@ -63,34 +74,64 @@ export const getEmployeeHours = async (req: Request, res: Response): Promise<voi
 /**
  * 4- Obtener el salario total por ID.
  */
-export const getEmployeeSalary = async (req: Request, res: Response): Promise<void> => {
+export const getEmployeeSalary = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    const data = await readData();
-    const employee = data.employees.find((e: Employee) => e.id === parseInt(id));
-    const horasTrabajadas = data.workedHours.filter((h: HorasTrabajadas) => h.employeeId === parseInt(id));
+    const employees = await dataService.getEmployees();
+    const cargos = await dataService.getCargos();
+    const salarios = await dataService.getSalarios();
+    const workedHours = await dataService.getWorkedHours(parseInt(id));
 
+    if (!Array.isArray(workedHours)) {
+      res.status(500).json({ message: 'Error al obtener las horas trabajadas' });
+      return;
+    }
+
+    const employee = employees.find((e: Employee) => e.id === parseInt(id));
     if (!employee) {
       res.status(404).json({ message: 'Empleado no encontrado' });
       return;
     }
-    // Suma de todas las horas trabajadas
-    const totalHorasTrabajadas = horasTrabajadas.reduce((acc: number, curr: HorasTrabajadas) => acc + curr.hours, 0);
 
-    // Horas estándar por mes
-    const salarioMensualStandard = 8 * 23.23;  // 185.84 horas por mes
+    const cargo = cargos.find((c) => c.id === employee.cargo_id);
 
-    // Calcular el salario mensual proporcionalmente
-    const salarioMensual = (totalHorasTrabajadas / salarioMensualStandard) * (employee.pricePerHour * salarioMensualStandard);
+    if (!cargo) {
+      console.warn(`Cargo con ID ${employee.cargo_id} no encontrado para el empleado ${employee.fullname}.`);
+      res.status(404).json({ message: `Cargo con ID ${employee.cargo_id} no encontrado.` });
+      return;
+    }
 
+    const salario = salarios.find((s) => s.id === cargo.salario_id);
+    if (!salario) {
+      res.status(404).json({ message: 'Salario no encontrado para este cargo.' });
+      return;
+    }
+
+    // Suma total de horas trabajadas por el empleado
+    const totalHorasTrabajadas = workedHours.reduce(
+      (acc: number, curr: WorkedHour) => acc + curr.hours,
+      0
+    );
+
+    // Calcular el salario mensual
+    const salarioMensual = totalHorasTrabajadas > 0 
+      ? (totalHorasTrabajadas / HORAS_MENSUALES_STANDARD) * salario.monto 
+      : 0;
+
+    // Respuesta al cliente
     res.status(200).json({
+      id: employee.id,
       totalHorasTrabajadas,
-      salarioMensual: salarioMensual.toFixed(2) //2 decimales
+      salarioBase: salario.monto, 
+      salarioMensual: salarioMensual.toFixed(2) 
     });
-  } catch (error) {
-    const errorMessage = (error as Error).message;
-    res.status(500).json({ message: 'Error al obtener el salario', error: errorMessage });
+  } catch (error: unknown) {
+    console.error('Error al obtener el salario:', error);
+    res.status(500).json({ 
+      message: 'Error al obtener el salario', 
+      error: (error as Error).message 
+    });
   }
 };
 
@@ -106,28 +147,25 @@ export const addEmployee = async (req: Request, res: Response): Promise<void> =>
   }
 
   try {
-    const data = await readData();
+    const employees = await dataService.getEmployees();
 
-    data.employees = data.employees || [];
-
-    if (data.employees.some((e: Employee) => e.cedula === cedula)) {
+    if (employees.some((e: Employee) => e.cedula === cedula)) {
       res.status(400).json({ message: 'Cédula ya registrada' });
       return;
     }
 
     const newEmployee: Employee = {
-      id: data.employees.length + 1,
+      id: employees.length + 1,
       cedula,
       fullname,
       pricePerHour,
       activo: true
     };
 
-    data.employees.push(newEmployee);
-    await writeData(data);
-
+    employees.push(newEmployee);
+    await dataService.saveEmployees(employees);
     res.status(201).json(newEmployee);
-  } catch (error) {
+  } catch (error: unknown) {
     const errorMessage = (error as Error).message;
     res.status(500).json({ message: 'Error al agregar empleado', error: errorMessage });
   }
@@ -136,7 +174,7 @@ export const addEmployee = async (req: Request, res: Response): Promise<void> =>
 /**
  * 6- Agregar por ID registro horas trabajadas por empleado.
  */
-export const addEmployeeHours = async (req: Request, res: Response): Promise<void> => {
+export const addEmployeeHours = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   const { id } = req.params;
   const { hours } = req.body;
 
@@ -146,22 +184,26 @@ export const addEmployeeHours = async (req: Request, res: Response): Promise<voi
   }
 
   try {
-    const data = await readData();
-    const employee = data.employees.find((e: Employee) => e.id === parseInt(id));
+    const employees = await dataService.getEmployees();
+    const employee = employees.find((e) => e.id === parseInt(id));
 
     if (!employee) {
       res.status(404).json({ message: 'Empleado no encontrado' });
       return;
     }
 
-    const newRecord = { employeeId: parseInt(id), hours };
-    data.workedHours.push(newRecord);
+    const newRecord: WorkedHour = {
+      employee_id: parseInt(id),
+      hours,
+    };
 
-    await writeData(data);
-    res.status(201).json(newRecord);
-  } catch (error) {
+    // Agregar el nuevo registro sin sobrescribir los existentes
+    await dataService.addWorkedHour(newRecord);
+
+    res.status(201).json({ message: 'Horas registradas correctamente', newRecord });
+  } catch (error: unknown) {
     const errorMessage = (error as Error).message;
-    res.status(500).json({ message: 'Error al agregar horas trabajadas', error: errorMessage });
+    res.status(500).json({ message: 'Error al registrar horas', error: errorMessage });
   }
 };
 
@@ -173,8 +215,8 @@ export const updateEmployee = async (req: Request, res: Response): Promise<void>
   const { fullname, pricePerHour } = req.body;
 
   try {
-    const data = await readData();
-    const employee = data.employees.find((e: Employee) => e.id === parseInt(id));
+    const employees = await dataService.getEmployees();
+    const employee = employees.find((e: Employee) => e.id === parseInt(id));
 
     if (!employee) {
       res.status(404).json({ message: 'Empleado no encontrado' });
@@ -184,7 +226,7 @@ export const updateEmployee = async (req: Request, res: Response): Promise<void>
     employee.fullname = fullname || employee.fullname;
     employee.pricePerHour = pricePerHour || employee.pricePerHour;
 
-    await writeData(data);
+    await dataService.saveEmployees(employees);
     res.status(200).json(employee);
   } catch (error) {
     const errorMessage = (error as Error).message;
@@ -195,25 +237,37 @@ export const updateEmployee = async (req: Request, res: Response): Promise<void>
 /**
  * 8- Soft delete de un empleado y su registro total de horas trabajadas.
  */
-export const deleteEmployee = async (req: Request, res: Response): Promise<void> => {
+export const deleteEmployee = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
-    const data = await readData();
-    const employee = data.employees.find((e: Employee) => e.id === parseInt(id));
+    const employees = await dataService.getEmployees();
+    const employee = employees.find((e) => e.id === parseInt(id));
 
     if (!employee) {
       res.status(404).json({ message: 'Empleado no encontrado' });
       return;
     }
 
+    // Marcar al empleado como inactivo (soft delete)
     employee.activo = false;
-    data.workedHours = data.workedHours.filter((h: HorasTrabajadas) => h.employeeId !== parseInt(id));
 
-    await writeData(data);
-    res.status(200).json({ message: 'Empleado eliminado correctamente' });
-  } catch (error) {
+    // Obtener todas las horas trabajadas
+    const allWorkedHours = await dataService.getWorkedHours();
+
+    // Filtrar para mantener solo las horas de empleados distintos al que se elimina
+    const updatedHours = allWorkedHours.filter((h: WorkedHour) => h.employee_id !== parseInt(id));
+
+    // Guardar las horas filtradas
+    await dataService.saveWorkedHours(updatedHours);
+
+    // Guardar la lista actualizada de empleados
+    await dataService.saveEmployees(employees);
+
+    res.status(200).json({ message: 'Empleado eliminado correctamente con (soft delete)' });
+  } catch (error: unknown) {
     const errorMessage = (error as Error).message;
     res.status(500).json({ message: 'Error al eliminar empleado', error: errorMessage });
   }
 };
+
